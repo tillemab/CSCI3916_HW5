@@ -74,7 +74,7 @@ router.route('/movies')
       .then((results) => {
 
         // Return 200 Okay
-        return res.status(200).send(results)
+        res.status(200).send(results)
 
       })
       .catch((err) => {
@@ -82,7 +82,7 @@ router.route('/movies')
         console.error(err);
 
         // 500 Internal Server Error
-        return res.status(500).json({ success: false, message: 'Something went wrong. Please try again later.' });
+        res.status(500).json({ success: false, message: 'Something went wrong. Please try again later.' });
 
       })
 
@@ -122,7 +122,7 @@ router.route('/movies')
       .then((results) => {
 
         // Return 201 Created
-        return res.status(201).json({ movie: results })
+        res.status(201).json({ success: true, movie: results })
 
       })
 
@@ -131,30 +131,40 @@ router.route('/movies')
         console.error(err);
 
         // 500 Internal Server Error
-        return res.status(500).json({ success: false, message: 'Something went wrong. Please try again later.' });
+        res.status(500).json({ success: false, message: 'Something went wrong. Please try again later.' });
 
       })
 
   })
   .put(authJwtController.isAuthenticated, async (req, res) => {
-    return res.status(405).json({ success: false, message: 'PUT request is missing a movie id: /movies/:movieId' }); // 405 Method Not Allowed
+    res.status(405).json({ success: false, message: 'PUT not allowed on /movies. Use /movies/:movieId instead.' }); // 405 Method Not Found
   })
   .delete(authJwtController.isAuthenticated, async (req, res) => {
-    return res.status(405).json({ success: false, message: 'DELETE request is missing a movie id: /movies/:movieId' }); // 405 Method Not Allowed
+    res.status(405).json({ success: false, message: 'DELETE not allowed on /movies. Use /movies/:movieId instead.' }); // 405 Method Not Found
   })
+  .all(authJwtController.isAuthenticated, (req, res) => {
+    res.status(405).send({ success: false, message: 'HTTP method not supported.' }); // 405 Method Not Found
+  });
 
 router.route('/movies/:movieId')
     .get(authJwtController.isAuthenticated, async (req, res) => {
-      Movie.findOne({ _id: req.params.movieId })
+      Movie.findById(req.params.movieId)
         .then((results) => {
-          res.send(results);
+
+          if(results) {
+            res.status(200).send({ success: true, movie: results }); // 200 OK
+          } else {
+            res.status(404).send({ success: false, message: 'Movie not found.' }); // 404 Not Found
+          }
+
         })
         .catch((err) => {
           console.error(err);
+          res.status(500).json({ success: false, message: 'Something went wrong. Please try again later.' }); // 500 Server Error
         })
     })
     .post(authJwtController.isAuthenticated, async (req, res) => {
-      return res.status(405).json({ success: false, message: 'POST request not supported for a specific movie.' }); // 405 Method Not Allowed
+      res.status(405).json({ success: false, message: 'POST not allowed on /movies/:movieId. Use /movies instead.' }); // 405 Method Not Allowed
     })
     .put(authJwtController.isAuthenticated, async (req, res) => {
 
@@ -186,11 +196,14 @@ router.route('/movies/:movieId')
       }
 
       // Update the existing movie in the collection with updated movie
-      Movie.updateOne({ _id: req.params.movieId }, updated_movie)
+      Movie.findByIdAndUpdate(req.params.movieId, updated_movie)
         .then((results) => {
 
-          // Return 201 Created
-          return res.status(200).send(results)
+          if(results) {
+            res.status(200).send({ success: true, message: 'Movie updated.' }); // 200 OK
+          } else {
+            res.status(404).send({ success: false, message: 'Movie not found.' }); // 404 Not Found
+          }
 
         })
         .catch((err) => {
@@ -198,19 +211,27 @@ router.route('/movies/:movieId')
           console.error(err)
           
           // 500 Internal Server Error
-          return res.status(500).json({ success: false, message: 'Something went wrong. Please try again later.' });
+          res.status(500).json({ success: false, message: 'Something went wrong. Please try again later.' });
 
         })
     })
     .delete(authJwtController.isAuthenticated, async (req, res) => {
-      Movie.deleteOne({ _id: req.params.movieId })
+      Movie.findByIdAndDelete(req.params.movieId)
         .then((results) => {
-          res.send(results);
+          if(results) {
+            res.status(200).send({ success: true, message: 'Movie deleted.' }); // 200 OK
+          } else {
+            res.status(404).send({ success: false, message: 'Movie not found.' }); // 404 Not Found
+          }
         })
         .catch((err) => {
           console.error(err);
+          res.status(500).json({ success: false, message: 'Something went wrong. Please try again later.' }); // 500 Server Error
         })
     })
+    .all(authJwtController.isAuthenticated, (req, res) => {
+      res.status(405).send({ success: false, message: 'HTTP method not supported.' }); // 405 Method Not Found
+    });
 
 app.use('/', router);
 
