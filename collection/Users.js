@@ -1,23 +1,10 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const bcrypt = require('bcrypt'); // Use bcrypt, not bcrypt-nodejs
-
-// No need for mongoose.Promise = global.Promise;
-
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.DB); // useNewUrlParser and useUnifiedTopology are no longer needed
-    console.log("Connected to MongoDB");
-  } catch (error) {
-    console.error("MongoDB connection error:", error); // Log the actual error object
-    process.exit(1); // Exit the process if the connection fails (optional, but good practice)
-  }
-};
+const {connectDB} = require('../utils')
+const bcrypt = require('bcrypt');
 
 connectDB();
 
-
-const UserSchema = new Schema({
+const UserSchema = new mongoose.Schema({
     name: String,
     username: { type: String, required: true, index: { unique: true } },
     password: { type: String, required: true, select: false }
