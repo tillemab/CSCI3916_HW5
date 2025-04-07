@@ -10,6 +10,22 @@ const connectDB = async () => {
     }
 };
 
+const concatenateErrors = (err) => {
+
+  let message = "";
+
+  // Add the error message for each path
+  const errors = Object.values(err["errors"]);
+  for (let i = 0; i < errors.length; i++ ) {
+    message += errors[i]["message"] + " ";
+  }
+
+  // Splice off the last extra space character
+  return message.slice(0, -1);
+
+}
+
 module.exports = {
-    connectDB: connectDB
+    connectDB: connectDB,
+    concatenateErrors: concatenateErrors
 }
