@@ -116,7 +116,6 @@ router.get('/:movieId', authJwtController.isAuthenticated, async (req, res) => {
             }
         ])
             .then((results) => {
-                console.log(results);
                 if (results.length !== 0) {
                     res.status(200).send({ success: true, movie: results[0] }); // 200 OK
                 } else {
