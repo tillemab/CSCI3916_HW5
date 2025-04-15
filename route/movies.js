@@ -14,7 +14,7 @@ router.get('/', authJwtController.isAuthenticated, async (req, res) => {
                     from: "reviews",
                     localField: "_id",
                     foreignField: "movieId",
-                    as: "reviews"
+                    as: "movieReviews"
                 }
             },
             {
@@ -30,7 +30,7 @@ router.get('/', authJwtController.isAuthenticated, async (req, res) => {
             },
             {
                 $sort: {
-                    title: 1
+                    avgRating: -1
                 }
             }
         ])
@@ -101,7 +101,7 @@ router.get('/:movieId', authJwtController.isAuthenticated, async (req, res) => {
                     from: "reviews",
                     localField: "_id",
                     foreignField: "movieId",
-                    as: "reviews"
+                    as: "movieReviews"
                 }
             },
             {
