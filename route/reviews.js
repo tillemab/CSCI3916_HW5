@@ -5,7 +5,7 @@ const authJwtController = require('../auth_jwt');
 const { concatenateErrors } = require('../utils');
 
 // Retrieve all of the reviews
-router.get('/', async (req, res) => {
+router.get('/', authJwtController.isAuthenticated, async (req, res) => {
     Review.find()
         .then((results) => {
             res.status(200).send(results) // 200 Okay
@@ -37,7 +37,7 @@ router.post('/', authJwtController.isAuthenticated, async (req, res) => {
 });
 
 // Unsupported HTTP Methods
-router.all('/', (req, res) => {
+router.all('/', authJwtController.isAuthenticated, (req, res) => {
     res.status(405).send({ success: false, message: 'HTTP method not supported.' }); // 405 Method Not Found
 });
 
