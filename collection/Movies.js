@@ -29,6 +29,10 @@ const MovieSchema = new mongoose.Schema({
             characterName: String,
         }],
         required: [true, "You must provide actors."],
+    },
+    imageUrl: {
+        type: String,
+        required: [true, "You must provide an image URL."]
     }
 });
 

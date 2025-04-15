@@ -59,7 +59,8 @@ router.post('/', authJwtController.isAuthenticated, async (req, res) => {
         title: req.body.title,
         releaseDate: req.body.releaseDate,
         genre: req.body.genre,
-        actors: req.body.actors
+        actors: req.body.actors,
+        imageUrl: req.body.imageUrl
     })
         .then((results) => {
             res.status(201).json({ success: true, movie: results }); // 201 Created
@@ -153,7 +154,8 @@ router.put('/:movieId', authJwtController.isAuthenticated, async (req, res) => {
         title: req.body.title,
         releaseDate: req.body.releaseDate,
         genre: req.body.genre,
-        actors: req.body.actors
+        actors: req.body.actors,
+        imageUrl: req.body.imageUrl
     }, {runValidators: true})
         .then((results) => {
             if (results) {
