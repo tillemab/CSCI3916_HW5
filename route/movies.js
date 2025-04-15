@@ -21,8 +21,8 @@ router.get('/', authJwtController.isAuthenticated, async (req, res) => {
                 $addFields: {
                     avgRating: {
                         $cond: {
-                            if: { $gt: [ { $size: "$reviews" }, 0 ] },
-                            then: { $avg: "$reviews.rating" },
+                            if: { $gt: [ { $size: "$movieReviews" }, 0 ] },
+                            then: { $avg: "$movieReviews.rating" },
                             else: null
                         }
                     }
@@ -89,6 +89,67 @@ router.all('/', authJwtController.isAuthenticated, (req, res) => {
     res.status(405).send({ success: false, message: 'HTTP method not supported.' }); // 405 Method Not Found
 });
 
+// Search movies collection and get all matches
+router.get('/search', authJwtController.isAuthenticated, async (req, res) => {
+    if(!req.query.q) { // Check that a query is specified
+        return res.status(400).json({ success: false, message: 'Missing search query.' }); // 400 Bad Request
+    }
+    if(req.query.reviews === "true") {
+        Movie.aggregate([
+            {
+                $match: {
+                    title: new RegExp(req.query.q, 'i')
+                }
+            },
+            {
+                $lookup: {
+                    from: "reviews",
+                    localField: "_id",
+                    foreignField: "movieId",
+                    as: "movieReviews"
+                }
+            },
+            {
+                $addFields: {
+                    avgRating: {
+                        $cond: {
+                            if: { $gt: [ { $size: "$movieReviews" }, 0 ] },
+                            then: { $avg: "$movieReviews.rating" },
+                            else: null
+                        }
+                    }
+                }
+            },
+            {
+                $sort: {
+                    avgRating: -1
+                }
+            }
+        ])
+            .then((results) => {
+                res.status(200).send(results); // 200 Okay
+            })
+            .catch((err) => {
+                console.error(err);
+                res.status(500).json({ success: false, message: 'Something went wrong. Please try again later.' }); // 500 Internal Server Error
+            });
+    } else {
+        Movie.find({ title: new RegExp(req.query.q, 'i') })
+            .then((results) => {
+                res.status(200).send(results); // 200 Okay
+            })
+            .catch((err) => {
+                console.error(err);
+                res.status(500).json({ success: false, message: 'Something went wrong. Please try again later.' }); // 500 Internal Server Error
+            });
+    };
+});
+
+// Remainder of Unsupported HTTP Methods
+router.all('/search', authJwtController.isAuthenticated, (req, res) => {
+    res.status(405).send({ success: false, message: 'HTTP method not supported.' }); // 405 Method Not Found
+});
+
 // Retrieves a specific movie (requires JWT token)
 router.get('/:movieId', authJwtController.isAuthenticated, async (req, res) => {
     if(req.query.reviews === "true") {
@@ -108,8 +169,8 @@ router.get('/:movieId', authJwtController.isAuthenticated, async (req, res) => {
                 $addFields: {
                     avgRating: {
                         $cond: {
-                            if: { $gt: [ { $size: "$reviews" }, 0 ] },
-                            then: { $avg: "$reviews.rating" },
+                            if: { $gt: [ { $size: "$movieReviews" }, 0 ] },
+                            then: { $avg: "$movieReviews.rating" },
                             else: null
                         }
                     }
